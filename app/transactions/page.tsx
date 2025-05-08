@@ -1,22 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
 import TransactionsTable from "@/components/business/transactions-table";
 import { TransactionsFilter } from "@/components/business/transactions-filter";
 import { TransactionsStats } from "@/components/business/transactions-stats";
 import { AddTransactionDialog } from "@/components/business/add-transaction-dialog";
 import { Transaction } from "@/types/transaction";
-
-// const supabase = createClient(
-//   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-//   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-// );
-
-const supabase = createClient(
-  "https://rzjeoeljpbdgxmlohlos.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6amVvZWxqcGJkZ3htbG9obG9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY1OTU0MjQsImV4cCI6MjA2MjE3MTQyNH0.tBBR7I880f7W0d1_ITe4tCjx4pkQYNmW29_mt4uBI-A"
-);
+import { supabase } from "@/lib/supbase";
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);

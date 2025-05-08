@@ -1,17 +1,11 @@
 "use client";
 
-import { createClient } from "@supabase/supabase-js";
 import { useEffect } from "react";
 import AssetsTable from "@/components/business/assets-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AssetsPieChart from "@/components/business/assets-pie-chart";
 import { AddAssetDialog } from "@/components/business/add-asset-dialog";
-
-// Create a single supabase client for interacting with your database
-const supabase = createClient(
-  "https://rzjeoeljpbdgxmlohlos.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6amVvZWxqcGJkZ3htbG9obG9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY1OTU0MjQsImV4cCI6MjA2MjE3MTQyNH0.tBBR7I880f7W0d1_ITe4tCjx4pkQYNmW29_mt4uBI-A"
-);
+import { supabase } from "@/lib/supbase";
 
 export default function Assets() {
   useEffect(() => {
