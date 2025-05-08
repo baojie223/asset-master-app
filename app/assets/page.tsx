@@ -48,6 +48,15 @@ export default function Assets() {
       const { data, error } = await supabase.from("assets").select("*");
       console.log(data, error);
     }
+
+    async function getSth() {
+      const { data, error } = await supabase.functions.invoke('smooth-api', {
+        body: { name: 'Functions' },
+      })
+      console.log(data, error)
+    }
+
+    getSth();
     getData();
   }, []);
 
