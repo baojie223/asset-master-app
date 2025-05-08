@@ -2,8 +2,8 @@ export interface Transaction {
   id: string;
   date: string;
   type: "收入" | "支出";
-  category: string;
   amount: number;
+  category: string;
   description?: string;
   tags?: string;
   created_at?: string;

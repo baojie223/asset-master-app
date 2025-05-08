@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -13,150 +11,151 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 
-interface TransactionsFilterProps {
-  onFilterChange: (filters: {
-    year: string;
-    month: string;
-    type: string;
-    tags: string[];
-  }) => void;
+export interface TransactionsFilterProps {
+  selectedYear: number;
+  selectedMonth: number | null;
+  selectedType: string | null;
+  selectedTags: string[];
+  onYearChange: (year: number) => void;
+  onMonthChange: (month: number | null) => void;
+  onTypeChange: (type: string | null) => void;
+  onTagsChange: (tags: string[]) => void;
 }
 
-export function TransactionsFilter({ onFilterChange }: TransactionsFilterProps) {
-  const [selectedYear, setSelectedYear] = useState<string>("");
-  const [selectedMonth, setSelectedMonth] = useState<string>("");
-  const [selectedType, setSelectedType] = useState<string>("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+const months = [
+  { value: 1, label: "1月" },
+  { value: 2, label: "2月" },
+  { value: 3, label: "3月" },
+  { value: 4, label: "4月" },
+  { value: 5, label: "5月" },
+  { value: 6, label: "6月" },
+  { value: 7, label: "7月" },
+  { value: 8, label: "8月" },
+  { value: 9, label: "9月" },
+  { value: 10, label: "10月" },
+  { value: 11, label: "11月" },
+  { value: 12, label: "12月" },
+];
 
-  const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString());
-  const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, "0"));
-  const types = ["收入", "支出"];
-  const tags = ["餐饮", "交通", "购物", "娱乐", "住房", "医疗", "教育", "其他"];
+const types = [
+  { value: "收入", label: "收入" },
+  { value: "支出", label: "支出" },
+];
 
-  const handleFilterChange = () => {
-    onFilterChange({
-      year: selectedYear,
-      month: selectedMonth,
-      type: selectedType,
-      tags: selectedTags,
-    });
-  };
+const tags = [
+  "餐饮",
+  "交通",
+  "购物",
+  "娱乐",
+  "医疗",
+  "教育",
+  "住房",
+  "其他",
+];
 
+export function TransactionsFilter({
+  selectedYear,
+  selectedMonth,
+  selectedType,
+  selectedTags,
+  onYearChange,
+  onMonthChange,
+  onTypeChange,
+  onTagsChange,
+}: TransactionsFilterProps) {
   const handleTagClick = (tag: string) => {
-    setSelectedTags((prev) => {
-      const newTags = prev.includes(tag)
-        ? prev.filter((t) => t !== tag)
-        : [...prev, tag];
-      return newTags;
-    });
+    if (selectedTags.includes(tag)) {
+      onTagsChange(selectedTags.filter((t) => t !== tag));
+    } else {
+      onTagsChange([...selectedTags, tag]);
+    }
   };
 
   const clearFilters = () => {
-    setSelectedYear("");
-    setSelectedMonth("");
-    setSelectedType("");
-    setSelectedTags([]);
-    onFilterChange({
-      year: "",
-      month: "",
-      type: "",
-      tags: [],
-    });
+    onMonthChange(null);
+    onTypeChange(null);
+    onTagsChange([]);
   };
 
   return (
-    <Card className="p-4">
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-4">
-          <Select
-            value={selectedYear}
-            onValueChange={(value) => {
-              setSelectedYear(value);
-              handleFilterChange();
-            }}
-          >
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="选择年份" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部年份</SelectItem>
-              {years.map((year) => (
-                <SelectItem key={year} value={year}>
-                  {year}年
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        <Select
+          value={selectedYear.toString()}
+          onValueChange={(value) => onYearChange(parseInt(value))}
+        >
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="选择年份" />
+          </SelectTrigger>
+          <SelectContent>
+            {years.map((year) => (
+              <SelectItem key={year} value={year.toString()}>
+                {year}年
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <Select
-            value={selectedMonth}
-            onValueChange={(value) => {
-              setSelectedMonth(value);
-              handleFilterChange();
-            }}
-          >
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="选择月份" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部月份</SelectItem>
-              {months.map((month) => (
-                <SelectItem key={month} value={month}>
-                  {month}月
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <Select
+          value={selectedMonth?.toString() || ""}
+          onValueChange={(value) => onMonthChange(parseInt(value))}
+        >
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="选择月份" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部月份</SelectItem>
+            {months.map((month) => (
+              <SelectItem key={month.value} value={month.value.toString()}>
+                {month.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <Select
-            value={selectedType}
-            onValueChange={(value) => {
-              setSelectedType(value);
-              handleFilterChange();
-            }}
-          >
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="交易类型" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部类型</SelectItem>
-              {types.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <Select
+          value={selectedType || ""}
+          onValueChange={(value) => onTypeChange(value || null)}
+        >
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="交易类型" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部类型</SelectItem>
+            {types.map((type) => (
+              <SelectItem key={type.value} value={type.value}>
+                {type.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
+        {(selectedMonth !== null || selectedType !== null || selectedTags.length > 0) && (
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={clearFilters}
-            className="ml-auto"
+            className="h-8 px-2 lg:px-3"
           >
             清除筛选
+            <X className="ml-2 h-4 w-4" />
           </Button>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {tags.map((tag) => (
-            <Badge
-              key={tag}
-              variant={selectedTags.includes(tag) ? "default" : "outline"}
-              className="cursor-pointer"
-              onClick={() => {
-                handleTagClick(tag);
-                handleFilterChange();
-              }}
-            >
-              {tag}
-              {selectedTags.includes(tag) && (
-                <X className="ml-1 h-3 w-3" />
-              )}
-            </Badge>
-          ))}
-        </div>
+        )}
       </div>
-    </Card>
+
+      <div className="flex flex-wrap gap-2">
+        {tags.map((tag) => (
+          <Badge
+            key={tag}
+            variant={selectedTags.includes(tag) ? "default" : "outline"}
+            className="cursor-pointer"
+            onClick={() => handleTagClick(tag)}
+          >
+            {tag}
+          </Badge>
+        ))}
+      </div>
+    </div>
   );
 } 

@@ -1,43 +1,63 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Transaction } from "@/types/transaction";
 import { Progress } from "@/components/ui/progress";
 
-interface TransactionStats {
-  category: string;
-  amount: number;
-  percentage: number;
+export interface TransactionsStatsProps {
+  transactions: Transaction[];
 }
 
-interface TransactionsStatsProps {
-  stats: TransactionStats[];
-  totalAmount: number;
-}
+export function TransactionsStats({ transactions }: TransactionsStatsProps) {
+  // 计算总支出
+  const totalExpense = transactions
+    .filter((t) => t.type === "支出")
+    .reduce((sum, t) => sum + t.amount, 0);
 
-export function TransactionsStats({ stats, totalAmount }: TransactionsStatsProps) {
+  // 按分类统计支出
+  const categoryStats = transactions
+    .filter((t) => t.type === "支出")
+    .reduce((stats, t) => {
+      const category = t.category;
+      stats[category] = (stats[category] || 0) + t.amount;
+      return stats;
+    }, {} as Record<string, number>);
+
+  // 转换为数组并排序
+  const sortedStats = Object.entries(categoryStats)
+    .map(([category, amount]) => ({
+      category,
+      amount,
+      percentage: (amount / totalExpense) * 100,
+    }))
+    .sort((a, b) => b.amount - a.amount);
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>支出分类统计</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="text-sm text-muted-foreground">
-          总支出：¥ {totalAmount.toLocaleString()}
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium">总支出</span>
+          <span className="text-2xl font-bold">¥ {totalExpense.toLocaleString()}</span>
         </div>
-        <div className="space-y-4">
-          {stats.map((stat) => (
-            <div key={stat.category} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{stat.category}</span>
-                <span className="text-sm text-muted-foreground">
-                  ¥ {stat.amount.toLocaleString()} ({stat.percentage}%)
-                </span>
-              </div>
-              <Progress value={stat.percentage} className="h-2" />
+      </div>
+
+      <div className="space-y-4">
+        {sortedStats.map((stat) => (
+          <div key={stat.category} className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">{stat.category}</span>
+              <span className="text-sm text-muted-foreground">
+                ¥ {stat.amount.toLocaleString()}
+              </span>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            <Progress value={stat.percentage} className="h-2" />
+            <div className="flex justify-end">
+              <span className="text-xs text-muted-foreground">
+                {stat.percentage.toFixed(1)}%
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 } 

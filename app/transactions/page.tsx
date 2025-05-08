@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import TransactionsTable from "@/components/business/transactions-table";
+import { TransactionsTable } from "@/components/business/transactions-table";
 import { TransactionsFilter } from "@/components/business/transactions-filter";
 import { TransactionsStats } from "@/components/business/transactions-stats";
 import { AddTransactionDialog } from "@/components/business/add-transaction-dialog";
+import { UploadTransactionsDialog } from "@/components/business/upload-transactions-dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Transaction } from "@/types/transaction";
 import { supabase } from "@/lib/supbase";
 
@@ -14,6 +16,10 @@ export default function Transactions() {
   const [stats, setStats] = useState<{ category: string; amount: number; percentage: number }[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(new Date().getMonth() + 1);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   useEffect(() => {
     fetchTransactions();
@@ -98,39 +104,120 @@ export default function Transactions() {
     calculateStats(filtered);
   };
 
+  const filteredTransactions2 = transactions.filter((transaction) => {
+    const transactionDate = new Date(transaction.created_at || "");
+    const year = transactionDate.getFullYear();
+    const month = transactionDate.getMonth() + 1;
+
+    const yearMatch = year === selectedYear;
+    const monthMatch = selectedMonth === null || month === selectedMonth;
+    const typeMatch = selectedType === null || transaction.type === selectedType;
+    const tagsMatch =
+      selectedTags.length === 0 ||
+      selectedTags.every((tag) => transaction.tags?.includes(tag));
+
+    return yearMatch && monthMatch && typeMatch && tagsMatch;
+  });
+
+  const sortedTransactions = [...filteredTransactions2].sort((a, b) => {
+    if (a.type === "支出" && b.type === "支出") {
+      return b.amount - a.amount;
+    }
+    return 0;
+  });
+
   return (
-    <div className="min-h-screen bg-gray-50/50 p-4 md:p-8">
-      <div className="mx-auto max-w-7xl space-y-4 md:space-y-8">
-        {/* 标题部分 */}
-        <div className="space-y-2">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">交易记录</h1>
-          <p className="text-sm md:text-base text-muted-foreground">
-            查看和管理您的所有交易记录。
-          </p>
-        </div>
-
-        {/* 筛选器 */}
-        <TransactionsFilter onFilterChange={handleFilterChange} />
-
-        {/* 统计信息 */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <TransactionsStats stats={stats} totalAmount={totalAmount} />
-        </div>
-
-        {/* 交易列表 */}
-        <div className="rounded-lg border bg-card overflow-x-auto">
-          {isLoading ? (
-            <div className="p-8 text-center text-muted-foreground">加载中...</div>
-          ) : filteredTransactions.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">暂无交易记录</div>
-          ) : (
-            <TransactionsTable transactions={filteredTransactions} />
-          )}
-        </div>
-
-        {/* 添加交易按钮 */}
-        <AddTransactionDialog onSuccess={fetchTransactions} />
+    <div className="container mx-auto py-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">交易记录</h1>
+        <p className="text-muted-foreground">
+          查看和管理您的所有交易记录
+        </p>
       </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">总资产</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">¥ 100,000</div>
+            <p className="text-xs text-muted-foreground">
+              较上月增长 5%
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">本月收入</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">¥ 15,000</div>
+            <p className="text-xs text-muted-foreground">
+              较上月增长 10%
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">本月支出</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">¥ 8,000</div>
+            <p className="text-xs text-muted-foreground">
+              较上月减少 5%
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">本月结余</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">¥ 7,000</div>
+            <p className="text-xs text-muted-foreground">
+              较上月增长 15%
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4">
+          <CardHeader>
+            <CardTitle>交易记录</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TransactionsFilter
+              selectedYear={selectedYear}
+              selectedMonth={selectedMonth}
+              selectedType={selectedType}
+              selectedTags={selectedTags}
+              onYearChange={setSelectedYear}
+              onMonthChange={setSelectedMonth}
+              onTypeChange={setSelectedType}
+              onTagsChange={setSelectedTags}
+            />
+            <div className="mt-4">
+              <TransactionsTable
+                transactions={sortedTransactions}
+                isLoading={isLoading}
+              />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="col-span-3">
+          <CardHeader>
+            <CardTitle>支出统计</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TransactionsStats transactions={sortedTransactions} />
+          </CardContent>
+        </Card>
+      </div>
+
+      <AddTransactionDialog onSuccess={fetchTransactions} />
+      <UploadTransactionsDialog onSuccess={fetchTransactions} />
     </div>
   );
 } 
