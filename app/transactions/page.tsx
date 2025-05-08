@@ -12,9 +12,9 @@ import { supabase } from "@/lib/supbase";
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
-  const [stats, setStats] = useState<{ category: string; amount: number; percentage: number }[]>([]);
-  const [totalAmount, setTotalAmount] = useState(0);
+  const [, setFilteredTransactions] = useState<Transaction[]>([]);
+  const [, setStats] = useState<{ category: string; amount: number; percentage: number }[]>([]);
+  const [, setTotalAmount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number | null>(new Date().getMonth() + 1);
@@ -70,39 +70,39 @@ export default function Transactions() {
     setStats(statsArray);
   };
 
-  const handleFilterChange = (filters: {
-    year: string;
-    month: string;
-    type: string;
-    tags: string[];
-  }) => {
-    let filtered = [...transactions];
+  // const handleFilterChange = (filters: {
+  //   year: string;
+  //   month: string;
+  //   type: string;
+  //   tags: string[];
+  // }) => {
+  //   let filtered = [...transactions];
 
-    if (filters.year) {
-      filtered = filtered.filter(
-        (t) => new Date(t.created_at || "").getFullYear().toString() === filters.year
-      );
-    }
+  //   if (filters.year) {
+  //     filtered = filtered.filter(
+  //       (t) => new Date(t.created_at || "").getFullYear().toString() === filters.year
+  //     );
+  //   }
 
-    if (filters.month) {
-      filtered = filtered.filter(
-        (t) => (new Date(t.created_at || "").getMonth() + 1).toString().padStart(2, "0") === filters.month
-      );
-    }
+  //   if (filters.month) {
+  //     filtered = filtered.filter(
+  //       (t) => (new Date(t.created_at || "").getMonth() + 1).toString().padStart(2, "0") === filters.month
+  //     );
+  //   }
 
-    if (filters.type) {
-      filtered = filtered.filter((t) => t.type === filters.type);
-    }
+  //   if (filters.type) {
+  //     filtered = filtered.filter((t) => t.type === filters.type);
+  //   }
 
-    if (filters.tags.length > 0) {
-      filtered = filtered.filter((t) =>
-        filters.tags.some((tag) => t.tags?.includes(tag))
-      );
-    }
+  //   if (filters.tags.length > 0) {
+  //     filtered = filtered.filter((t) =>
+  //       filters.tags.some((tag) => t.tags?.includes(tag))
+  //     );
+  //   }
 
-    setFilteredTransactions(filtered);
-    calculateStats(filtered);
-  };
+  //   setFilteredTransactions(filtered);
+  //   calculateStats(filtered);
+  // };
 
   const filteredTransactions2 = transactions.filter((transaction) => {
     const transactionDate = new Date(transaction.created_at || "");
@@ -128,11 +128,17 @@ export default function Transactions() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">交易记录</h1>
-        <p className="text-muted-foreground">
-          查看和管理您的所有交易记录
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">交易记录</h1>
+          <p className="text-muted-foreground">
+            查看和管理您的所有交易记录
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <UploadTransactionsDialog onSuccess={fetchTransactions} />
+          <AddTransactionDialog onSuccess={fetchTransactions} />
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -215,9 +221,6 @@ export default function Transactions() {
           </CardContent>
         </Card>
       </div>
-
-      <AddTransactionDialog onSuccess={fetchTransactions} />
-      <UploadTransactionsDialog onSuccess={fetchTransactions} />
     </div>
   );
 } 

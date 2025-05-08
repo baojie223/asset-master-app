@@ -11,8 +11,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { UploadIcon } from "lucide-react";
 import { supabase } from "@/lib/supbase";
+import { toast } from "sonner";
 
 interface UploadTransactionsDialogProps {
   onSuccess?: () => void;
@@ -21,51 +21,41 @@ interface UploadTransactionsDialogProps {
 export function UploadTransactionsDialog({ onSuccess }: UploadTransactionsDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState<string>("");
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      if (selectedFile.type !== "text/csv") {
-        setError("请上传 CSV 文件");
-        return;
-      }
-      setFile(selectedFile);
-      setError("");
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!file) {
-      setError("请选择文件");
-      return;
-    }
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
     try {
       setIsLoading(true);
-      setError("");
+      
+      // 上传文件到Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('transactions')
+        .upload(`${Date.now()}-${file.name}`, file);
 
-      // 读取文件内容
-      const fileContent = await file.text();
-
-      // 调用 Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke("parse-csv", {
-        body: { csvContent: fileContent },
+      if (uploadError) {
+        throw uploadError;
+      }
+      const formData = new FormData();
+      formData.append('filePath', uploadData.path);
+      // 调用parse-csv接口
+      const { data: parseData, error: parseError } = await supabase.functions.invoke('parse-csv', {
+        body: formData,
       });
 
-      console.log(data);
+      console.log(parseData);
 
-      if (error) {
-        throw new Error(error.message);
+      if (parseError) {
+        throw parseError;
       }
 
+      toast.success('CSV文件上传并解析成功');
       setOpen(false);
-      setFile(null);
       onSuccess?.();
     } catch (error) {
-      console.error("Error:", error);
-      setError("上传失败，请重试");
+      console.error('Error uploading file:', error);
+      toast.error('上传文件失败');
     } finally {
       setIsLoading(false);
     }
@@ -74,42 +64,29 @@ export function UploadTransactionsDialog({ onSuccess }: UploadTransactionsDialog
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="lg"
-          className="fixed bottom-20 right-20 h-14 w-14 rounded-full shadow-lg md:bottom-8 md:right-24"
-        >
-          <UploadIcon className="h-6 w-6" />
-        </Button>
+        <Button variant="outline">上传CSV</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>上传交易记录</DialogTitle>
           <DialogDescription>
-            上传 CSV 文件导入交易记录。请确保文件格式正确。
+            请选择要上传的CSV文件。文件应包含以下列：日期、类型、金额、分类、标签、备注。
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="grid w-full max-w-sm items-center gap-1.5">
-            <input
-              type="file"
-              accept=".csv"
-              onChange={handleFileChange}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            />
-            {error && (
-              <p className="text-sm text-red-500">{error}</p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button
-              onClick={handleUpload}
-              disabled={isLoading || !file}
-            >
-              {isLoading ? "上传中..." : "上传"}
-            </Button>
-          </DialogFooter>
+        <div className="grid gap-4 py-4">
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleFileUpload}
+            disabled={isLoading}
+            className="w-full"
+          />
         </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            取消
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
