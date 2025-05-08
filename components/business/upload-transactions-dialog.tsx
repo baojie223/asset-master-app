@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supbase";
 import { toast } from "sonner";
+import { Upload } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface UploadTransactionsDialogProps {
   onSuccess?: () => void;
@@ -21,6 +23,29 @@ interface UploadTransactionsDialogProps {
 export function UploadTransactionsDialog({ onSuccess }: UploadTransactionsDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type === 'text/csv') {
+      const event = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
+      handleFileUpload(event);
+    } else {
+      toast.error('请上传CSV文件');
+    }
+  }, []);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -29,19 +54,11 @@ export function UploadTransactionsDialog({ onSuccess }: UploadTransactionsDialog
     try {
       setIsLoading(true);
       
-      // 上传文件到Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('transactions')
-        .upload(`${Date.now()}-${file.name}`, file);
-
-      if (uploadError) {
-        throw uploadError;
-      }
       const formData = new FormData();
-      formData.append('filePath', uploadData.path);
+      formData.append('file', file);
       // 调用parse-csv接口
-      const { data: parseData, error: parseError } = await supabase.functions.invoke('parse-csv', {
-        body: formData,
+      const { data: parseData, error: parseError } = await supabase.functions.invoke('parse-csv-zfb', {
+        body: formData
       });
 
       console.log(parseData);
@@ -74,13 +91,33 @@ export function UploadTransactionsDialog({ onSuccess }: UploadTransactionsDialog
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <input
-            type="file"
-            accept=".csv"
-            onChange={handleFileUpload}
-            disabled={isLoading}
-            className="w-full"
-          />
+          <div
+            className={cn(
+              "relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg transition-colors",
+              isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25",
+              isLoading && "opacity-50 cursor-not-allowed"
+            )}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleFileUpload}
+              disabled={isLoading}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <div className="flex flex-col items-center justify-center text-center">
+              <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                拖放文件到这里，或点击选择文件
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                仅支持 .csv 文件
+              </p>
+            </div>
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
