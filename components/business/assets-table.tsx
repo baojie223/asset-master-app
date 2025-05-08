@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 // 测试数据
 const testAssets: Asset[] = [
@@ -45,6 +46,22 @@ const testAssets: Asset[] = [
   }
 ];
 
+const typeLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  cash: { label: "现金", variant: "default" },
+  bank_account: { label: "银行账户", variant: "secondary" },
+  stock: { label: "股票", variant: "destructive" },
+  crypto: { label: "加密货币", variant: "outline" },
+  other: { label: "其他", variant: "secondary" }
+};
+
+const currencySymbols: Record<string, string> = {
+  CNY: "¥",
+  USD: "$",
+  HKD: "HK$",
+  BTC: "₿",
+  ETH: "Ξ"
+};
+
 export default function AssetsTable() {
   return (
     <div className="rounded-md border">
@@ -53,7 +70,7 @@ export default function AssetsTable() {
           <TableRow>
             <TableHead>名称</TableHead>
             <TableHead>类型</TableHead>
-            <TableHead>初始价值</TableHead>
+            <TableHead className="text-right">初始价值</TableHead>
             <TableHead>货币</TableHead>
             <TableHead>购买日期</TableHead>
             <TableHead>备注</TableHead>
@@ -62,12 +79,26 @@ export default function AssetsTable() {
         <TableBody>
           {testAssets.map((asset) => (
             <TableRow key={asset.id}>
-              <TableCell>{asset.name}</TableCell>
-              <TableCell>{asset.type}</TableCell>
-              <TableCell>{asset.initial_value}</TableCell>
-              <TableCell>{asset.currency}</TableCell>
+              <TableCell className="font-medium">{asset.name}</TableCell>
+              <TableCell>
+                <Badge 
+                  variant={typeLabels[asset.type].variant}
+                  className="capitalize"
+                >
+                  {typeLabels[asset.type].label}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right font-medium">
+                {currencySymbols[asset.currency]}
+                {asset.initial_value.toLocaleString()}
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline" className="font-mono">
+                  {asset.currency}
+                </Badge>
+              </TableCell>
               <TableCell>{asset.purchase_date}</TableCell>
-              <TableCell>{asset.notes}</TableCell>
+              <TableCell className="text-muted-foreground">{asset.notes}</TableCell>
             </TableRow>
           ))}
         </TableBody>
