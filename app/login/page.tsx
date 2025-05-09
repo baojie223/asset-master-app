@@ -13,11 +13,30 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
 
+  const validateForm = () => {
+    if (!email) {
+      toast.error("请输入邮箱地址");
+      return false;
+    }
+    if (!email.includes("@")) {
+      toast.error("请输入有效的邮箱地址");
+      return false;
+    }
+    if (!password) {
+      toast.error("请输入密码");
+      return false;
+    }
+    if (password.length < 6) {
+      toast.error("密码长度至少为6位");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast.error("请填写所有必填字段");
+    if (!validateForm()) {
       return;
     }
 
@@ -32,7 +51,16 @@ export default function LoginPage() {
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
-        toast.error(error.message);
+        // 处理常见错误
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("邮箱或密码错误");
+        } else if (error.message.includes("Email not confirmed")) {
+          toast.error("邮箱未验证，请先验证邮箱");
+        } else if (error.message.includes("User already registered")) {
+          toast.error("该邮箱已注册，请直接登录");
+        } else {
+          toast.error(error.message);
+        }
       } else {
         toast.error("发生未知错误");
       }
@@ -48,6 +76,9 @@ export default function LoginPage() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             {isLogin ? "登录" : "注册"}
           </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            {isLogin ? "登录您的账户" : "创建新账户"}
+          </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
@@ -60,6 +91,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="mb-4"
                 disabled={loading}
+                autoComplete="email"
               />
             </div>
             <div>
@@ -70,6 +102,8 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
+                autoComplete={isLogin ? "current-password" : "new-password"}
+                minLength={6}
               />
             </div>
           </div>
@@ -88,7 +122,11 @@ export default function LoginPage() {
             <button
               type="button"
               className="text-sm text-blue-600 hover:text-blue-500"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setEmail("");
+                setPassword("");
+              }}
               disabled={loading}
             >
               {isLogin ? "没有账号？点击注册" : "已有账号？点击登录"}

@@ -37,9 +37,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             email: session.user.email!,
             created_at: session.user.created_at,
           });
+          // 如果在登录页面，重定向到首页
+          if (window.location.pathname === '/login') {
+            router.push('/');
+          }
+        } else {
+          // 如果不在登录页面，重定向到登录页
+          if (window.location.pathname !== '/login' && window.location.pathname !== '/auth/callback') {
+            router.push('/login');
+          }
         }
       } catch (error) {
         console.error("Session check error:", error);
+        router.push('/login');
       } finally {
         setLoading(false);
       }
@@ -57,14 +67,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: session.user.email!,
           created_at: session.user.created_at,
         });
+        // 如果在登录页面，重定向到首页
+        // if (window.location.pathname === '/login') {
+        //   router.push('/');
+        // }
       } else {
         setUser(null);
+        // 如果不在登录页面，重定向到登录页
+        // if (window.location.pathname !== '/login' && window.location.pathname !== '/auth/callback') {
+        //   router.push('/login');
+        // }
       }
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [router]);
 
   const signIn = async (email: string, password: string) => {
     try {
