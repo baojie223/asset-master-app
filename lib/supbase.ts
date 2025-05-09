@@ -5,12 +5,10 @@ export const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJ
 
 export const supabase = createClient(
     supabaseUrl,
+    supabaseAnonKey
+);
+
+export const supabaseAuth = createClient(
+    "https://rzjeoeljpbdgxmlohlos.supabase.co",
     supabaseAnonKey,
-    {
-        auth: {
-            autoRefreshToken: true,
-            persistSession: true,
-            detectSessionInUrl: true
-        }
-    }
 );

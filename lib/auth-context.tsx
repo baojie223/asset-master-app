@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@/types";
-import { supabase } from "./supbase";
+import { supabaseAuth as supabase } from "./supbase";
 import { useRouter } from "next/navigation";
 
 const AuthContext = createContext<{
@@ -68,15 +68,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           created_at: session.user.created_at,
         });
         // 如果在登录页面，重定向到首页
-        // if (window.location.pathname === '/login') {
-        //   router.push('/');
-        // }
+        if (window.location.pathname === '/login') {
+          router.push('/');
+        }
       } else {
         setUser(null);
         // 如果不在登录页面，重定向到登录页
-        // if (window.location.pathname !== '/login' && window.location.pathname !== '/auth/callback') {
-        //   router.push('/login');
-        // }
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/auth/callback') {
+          router.push('/login');
+        }
       }
       setLoading(false);
     });
