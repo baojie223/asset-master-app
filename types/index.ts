@@ -23,22 +23,26 @@ export interface Category {
 // 交易/账目类型
 export interface Transaction {
     id: number;
-    asset_id: number;
+    asset_id?: number;
     category_id?: number;
     amount: number;              // 正数收入，负数支出
     occurred_at: string;         // ISO 时间戳
-    description?: string;
+    notes?: string;
     related_asset_id?: number;   // 转账时目标资产
     tags?: string[];
     created_at: string;
     updated_at: string;
+    ledger_id?: number;
 }
 
 // 可选：用户类型
 export interface User {
     id: string;       // UUID
     email: string;
-    password_hash: string;
-    name?: string;
     created_at: string;
+}
+
+export interface AuthState {
+    user: User | null;
+    loading: boolean;
 }

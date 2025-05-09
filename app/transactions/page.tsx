@@ -7,7 +7,7 @@ import { TransactionsStats } from "@/components/business/transactions-stats";
 import { AddTransactionDialog } from "@/components/business/add-transaction-dialog";
 import { UploadTransactionsDialog } from "@/components/business/upload-transactions-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Transaction } from "@/types/transaction";
+import { Transaction } from "@/types";
 import { supabase } from "@/lib/supbase";
 
 export default function Transactions() {
@@ -20,10 +20,6 @@ export default function Transactions() {
   const [selectedMonth, setSelectedMonth] = useState<number | null>(new Date().getMonth() + 1);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
 
   const fetchTransactions = async () => {
     try {
@@ -50,12 +46,12 @@ export default function Transactions() {
   };
 
   const calculateStats = (transactions: Transaction[]) => {
-    const expenses = transactions.filter((t) => t.type === "支出");
+    const expenses = transactions.filter((t) => t.category_id === 999);
     const total = expenses.reduce((sum, t) => sum + t.amount, 0);
     setTotalAmount(total);
 
-    const categoryStats = expenses.reduce((acc: { [key: string]: number }, t) => {
-      acc[t.category] = (acc[t.category] || 0) + t.amount;
+    const categoryStats = expenses.reduce((acc: { [key: string]: number }) => {
+      // acc[t.category_id] = (acc[t.category_id] || 0) + t.amount;
       return acc;
     }, {});
 
@@ -111,7 +107,7 @@ export default function Transactions() {
 
     const yearMatch = year === selectedYear;
     const monthMatch = selectedMonth === null || month === selectedMonth;
-    const typeMatch = selectedType === null || transaction.type === selectedType;
+    const typeMatch = true;
     const tagsMatch =
       selectedTags.length === 0 ||
       selectedTags.every((tag) => transaction.tags?.includes(tag));
@@ -120,11 +116,15 @@ export default function Transactions() {
   });
 
   const sortedTransactions = [...filteredTransactions2].sort((a, b) => {
-    if (a.type === "支出" && b.type === "支出") {
+    if (a.category_id === 999 && b.category_id === 999) {
       return b.amount - a.amount;
     }
     return 0;
   });
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -136,7 +136,8 @@ export default function Transactions() {
           </p>
         </div>
         <div className="flex gap-2">
-          <UploadTransactionsDialog onSuccess={fetchTransactions} />
+          <UploadTransactionsDialog type="zfb" onSuccess={fetchTransactions} />
+          <UploadTransactionsDialog type="wx" onSuccess={fetchTransactions} />
           <AddTransactionDialog onSuccess={fetchTransactions} />
         </div>
       </div>
@@ -208,6 +209,7 @@ export default function Transactions() {
               <TransactionsTable
                 transactions={sortedTransactions}
                 isLoading={isLoading}
+                onSuccess={fetchTransactions}
               />
             </div>
           </CardContent>

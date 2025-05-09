@@ -1,6 +1,6 @@
 "use client";
 
-import { Transaction } from "@/types/transaction";
+import { Transaction } from "@/types";
 import { Progress } from "@/components/ui/progress";
 
 export interface TransactionsStatsProps {
@@ -10,15 +10,14 @@ export interface TransactionsStatsProps {
 export function TransactionsStats({ transactions }: TransactionsStatsProps) {
   // 计算总支出
   const totalExpense = transactions
-    .filter((t) => t.type === "支出")
+    .filter((t) => t.category_id === 999)
     .reduce((sum, t) => sum + t.amount, 0);
 
   // 按分类统计支出
   const categoryStats = transactions
-    .filter((t) => t.type === "支出")
-    .reduce((stats, t) => {
-      const category = t.category;
-      stats[category] = (stats[category] || 0) + t.amount;
+    .reduce((stats) => {
+      // const category = t.category_id;
+      // stats[category] = (stats[category] || 0) + t.amount;
       return stats;
     }, {} as Record<string, number>);
 

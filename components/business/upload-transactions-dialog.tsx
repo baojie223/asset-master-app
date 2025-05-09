@@ -18,12 +18,27 @@ import { cn } from "@/lib/utils";
 
 interface UploadTransactionsDialogProps {
   onSuccess?: () => void;
+  type: 'zfb' | 'wx';
 }
 
-export function UploadTransactionsDialog({ onSuccess }: UploadTransactionsDialogProps) {
+export function UploadTransactionsDialog({ onSuccess, type }: UploadTransactionsDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+
+  const getDialogTitle = () => {
+    return type === 'zfb' ? '上传支付宝账单' : '上传微信账单';
+  };
+
+  const getDialogDescription = () => {
+    return type === 'zfb' 
+      ? '请选择要上传的支付宝账单CSV文件。'
+      : '请选择要上传的微信账单CSV文件。';
+  };
+
+  const getButtonText = () => {
+    return type === 'zfb' ? '上传支付宝账单' : '上传微信账单';
+  };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -56,10 +71,13 @@ export function UploadTransactionsDialog({ onSuccess }: UploadTransactionsDialog
       
       const formData = new FormData();
       formData.append('file', file);
-      // 调用parse-csv接口
-      const { data: parseData, error: parseError } = await supabase.functions.invoke('parse-csv-zfb', {
-        body: formData
-      });
+      // 根据类型调用不同的接口
+      const { data: parseData, error: parseError } = await supabase.functions.invoke(
+        type === 'zfb' ? 'parse-csv-zfb' : 'parse-csv-wx',
+        {
+          body: formData
+        }
+      );
 
       console.log(parseData);
 
@@ -81,13 +99,13 @@ export function UploadTransactionsDialog({ onSuccess }: UploadTransactionsDialog
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">上传CSV</Button>
+        <Button variant="outline">{getButtonText()}</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>上传交易记录</DialogTitle>
+          <DialogTitle>{getDialogTitle()}</DialogTitle>
           <DialogDescription>
-            请选择要上传的CSV文件。文件应包含以下列：日期、类型、金额、分类、标签、备注。
+            {getDialogDescription()}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
