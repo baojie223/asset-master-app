@@ -15,12 +15,20 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast.error("请填写所有必填字段");
+      return;
+    }
+
     setLoading(true);
     try {
       if (isLogin) {
         await signIn(email, password);
+        toast.success("登录成功");
       } else {
         await signUp(email, password);
+        toast.success("注册成功，请查收验证邮件");
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -51,6 +59,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="mb-4"
+                disabled={loading}
               />
             </div>
             <div>
@@ -60,6 +69,7 @@ export default function LoginPage() {
                 placeholder="密码"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
               />
             </div>
           </div>
@@ -79,6 +89,7 @@ export default function LoginPage() {
               type="button"
               className="text-sm text-blue-600 hover:text-blue-500"
               onClick={() => setIsLogin(!isLogin)}
+              disabled={loading}
             >
               {isLogin ? "没有账号？点击注册" : "已有账号？点击登录"}
             </button>

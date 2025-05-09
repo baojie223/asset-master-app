@@ -70,11 +70,16 @@ export function EditTransactionDialog({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log("Form submitted with values:", values);
     try {
       setIsLoading(true);
       const { error } = await supabase
         .from("transactions")
-        .update(values)
+        .update({
+          // ...values,
+          amount: Number(values.amount),
+          // occurred_at: values.occurred_at || transaction.occurred_at,
+        })
         .eq("id", transaction.id);
 
       if (error) {
@@ -102,7 +107,14 @@ export function EditTransactionDialog({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form 
+            onSubmit={(e) => {
+              console.log("Form submit event triggered");
+              console.log("Form errors:", form.formState.errors);
+              form.handleSubmit(onSubmit)(e);
+            }} 
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="asset_id"
@@ -180,12 +192,16 @@ export function EditTransactionDialog({
             />
             <FormField
               control={form.control}
-              name="occurred_at"
+              name="occurred_at" 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>日期</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input 
+                      type="date" 
+                      {...field}
+                      value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -204,8 +220,34 @@ export function EditTransactionDialog({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>标签</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="输入标签，用逗号分隔"
+                      value={field.value ? field.value.join(',') : ''}
+                      onChange={e => field.onChange(
+                        e.target.value
+                          .split(',')
+                          .map(tag => tag.trim())
+                          .filter(tag => tag.length > 0)
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <DialogFooter>
-              <Button type="submit" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                onClick={() => console.log("Button clicked")}
+              >
                 {isLoading ? "保存中..." : "保存"}
               </Button>
             </DialogFooter>
