@@ -8,19 +8,21 @@ interface AnniversaryMessageProps {
 
 // 在这里修改您的寄语内容
 const messageContent = {
-  title: "两周年快乐，我的爱人",
-  date: "2024年3月14日",
-  greeting: "亲爱的：",
+  title: "两周年快乐！",
+  date: "2025年5月15日",
+  greeting: "亲爱的张丽娜：",
   paragraphs: [
     "两年的时间转瞬即逝，",
-    "每一天都因为有你而变得更加美好。",
-    "感谢你一直以来的陪伴与支持，",
-    "愿我们的爱情永远如初见般美好。",
-    "未来的日子里，",
-    "让我们一起继续书写属于我们的故事。",
-    "我爱你，永远。"
+    "这两年里，我们经历了很多，",
+    "也去过很多个地方，",
+    "为此，我希望能记录下我们自己的足迹。",
+    "也希望未来的日子里，",
+    "我们能一起继续书写属于我们的故事。",
+    "最后，",
+    "祝愿你的脸上，",
+    "永远都有最灿烂的笑容！"
   ],
-  signature: "爱你的我"
+  signature: "你的杰哥"
 }
 
 export function AnniversaryMessage({ onClose }: AnniversaryMessageProps) {
@@ -37,15 +39,12 @@ export function AnniversaryMessage({ onClose }: AnniversaryMessageProps) {
           initial={{ scale: 0.8, y: 50 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.8, y: 50 }}
-          className="bg-white p-8 rounded-lg max-w-2xl w-full mx-4"
+          className="bg-white p-8 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
           onClick={e => e.stopPropagation()}
         >
           <div className="max-w-xl mx-auto">
             {/* 信纸背景 */}
             <div className="bg-[#fff9f0] p-8 rounded-lg shadow-inner border border-[#e8d9c5]">
-              {/* 信纸纹理 */}
-              <div className="absolute inset-0 bg-[url('/images/paper-texture.png')] opacity-10" />
-              
               {/* 日期 */}
               <div className="text-right text-gray-600 mb-6">
                 {messageContent.date}
@@ -68,6 +67,15 @@ export function AnniversaryMessage({ onClose }: AnniversaryMessageProps) {
                     {paragraph}
                   </p>
                 ))}
+              </div>
+
+              {/* 图片 */}
+              <div className="flex justify-center mb-8">
+                <img 
+                  src="/images/20241208考公.jpg" 
+                  alt="我们的照片" 
+                  className="max-w-full h-auto rounded-lg shadow-md"
+                />
               </div>
 
               {/* 签名 */}

@@ -8,8 +8,8 @@ import { AuthProvider } from "@/lib/auth-context";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "资产管理",
-  description: "一个简单的资产管理应用",
+  title: "Jie & Lina's Journey",
+  description: "纪念日网站",
 };
 
 export default function RootLayout({

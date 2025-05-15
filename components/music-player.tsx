@@ -3,7 +3,11 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
-export function MusicPlayer() {
+interface MusicPlayerProps {
+  onPlay?: (play: () => void) => void
+}
+
+export function MusicPlayer({ onPlay }: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [audio] = useState(typeof window !== 'undefined' ? new Audio('/bg.mp3') : null)
 
@@ -18,6 +22,19 @@ export function MusicPlayer() {
       }
     }
   }, [audio])
+
+  const play = () => {
+    if (audio && !isPlaying) {
+      audio.play()
+      setIsPlaying(true)
+    }
+  }
+
+  useEffect(() => {
+    if (onPlay) {
+      onPlay(play)
+    }
+  }, [onPlay])
 
   const togglePlay = () => {
     if (audio) {
