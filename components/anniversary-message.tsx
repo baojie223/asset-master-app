@@ -80,7 +80,11 @@ export function AnniversaryMessage({ onClose }: AnniversaryMessageProps) {
           {/* 关闭按钮 */}
           <div className="text-center mt-6">
             <button
-              onClick={onClose}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
               className="px-6 py-2 bg-pink-500 text-white rounded-full hover:bg-pink-600 transition-colors"
             >
               关闭

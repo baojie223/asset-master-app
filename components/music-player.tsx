@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 
 export function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false)
-  const [audio] = useState(typeof window !== 'undefined' ? new Audio('/music/background.mp3') : null)
+  const [audio] = useState(typeof window !== 'undefined' ? new Audio('/bg.mp3') : null)
 
   useEffect(() => {
     if (audio) {
