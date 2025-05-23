@@ -1,0 +1,31 @@
+name: Deploy to Servers
+
+on:
+  push:
+    branches:
+      - main  # 监听 main 分支的提交
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # 使用 Ubuntu 环境来运行任务
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3  # 拉取代码
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '22'  # 设置 Node.js 版本
+
+    - name: Install dependencies
+      run: npm install  # 安装依赖
+
+    - name: Build Next.js
+      run: npm run build  # 编译 Next.js 项目
+
+    - name: Deploy to Server AliCloud
+      run: |
+        ssh -i /path/to/your/private-key baojie@52.148.154.217 "cd ~/code/asset-master-app && git pull && npm install && npm run build && pm2 restart app"
+      env:
+        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}  # 私钥，保存在 GitHub secrets 中
